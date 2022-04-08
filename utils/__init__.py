@@ -18,7 +18,7 @@ ISO_DATE_RE = "^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])$"
 # Classes
 class Item:
 
-    instances = []
+    _instances = []
 
     def __init__(self, name: str, description: str, price: float, quantity: int):
 
@@ -27,7 +27,7 @@ class Item:
         assert quantity >= 0, f"Quantity {quantity} is not greater than or equal to 0."
         assert type(quantity) is int, f"Quantity {quantity} is not an integer value."
 
-        self.instances.append(self)
+        self._instances.append(self)
 
         # Properties
         self.name = name
@@ -51,10 +51,18 @@ class Item:
                 quantity=0  # Quantity is 0 by default until set
             )
 
+    @classmethod
+    def find_item(cls, names: str | list[str]) -> list:
+
+        """Returns the Item object with the corresponding name."""
+
+        names = [names] if type(names) is str else names  # Make sure names is iterable
+
+        return [item for item in cls._instances if item.name in names]
+
     # Instance methods
 
     # Properties
-
     @property
     def subtotal(self) -> float:
         return round(self.price * self.quantity, 2)
@@ -119,11 +127,11 @@ class Issuer:
 
 class Client:
 
-    instances = []
+    _instances = []
 
     def __init__(self, name: str, address: str, location: str):
 
-        self.instances.append(self)
+        self._instances.append(self)
 
         # Properties
         self.name = name
@@ -142,6 +150,13 @@ class Client:
                 address=row["address"],
                 location=row["location"]
             )
+
+    @classmethod
+    def find_client(cls, name: str):
+
+        """Returns the Item object with the corresponding name."""
+
+        return [client for client in cls._instances if client.name == name][0]
 
     def __repr__(self):
         return f"{self.name}"

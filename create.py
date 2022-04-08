@@ -16,7 +16,7 @@ due = dt.date.fromisoformat("2022-09-14")
 Item.from_csv("itemList.csv")
 Client.from_csv("clientList.csv")
 
-template = Template(company, Client.instances[0], Item.instances, terms, due)
+template = Template(company, Client.find_client("Mauro Golin"), Item._instances, terms, due)
 
 # Main
 template.fill_out()
