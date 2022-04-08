@@ -6,12 +6,24 @@ import bs4.element
 from bs4 import BeautifulSoup
 import pdfkit
 import os
+import re
+
+# Constants
+EMAIL_RE = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
+ISO_DATE_RE = "^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])$"
 
 
 # Classes
 class Item:
 
     def __init__(self, name: str, description: str, price: float, quantity: int):
+
+        # Validation
+        assert price >= 0, f"Price {price} is not greater than or equal to $0."
+        assert quantity >= 0, f"Quantity {quantity} is not greater than or equal to 0."
+        assert type(quantity) is int, f"Quantity {quantity} is not an integer value."
+
+        # Properties
         self.name = name
         self.description = description
         self.price = price
@@ -42,6 +54,13 @@ class Item:
 class Issuer:
 
     def __init__(self, name: str, account_name: str, bank: str, email: str, phone: int):
+
+        # Validations
+        assert type(phone) is int, f"Phone number {phone} was not entered as an integer."
+        assert len(str(phone)) == 10, f"Phone number {phone} is not 10 digits long."
+        assert re.match(EMAIL_RE, email), f"The email address {email} is invalid."
+
+        # Properties
         self.name = name
         self.account_name = account_name
         self.bank = bank
@@ -67,13 +86,19 @@ class Template:
             client: Client,
             items: list[Item] | Item,
             terms_and_conditions: str,
-            due: dt.date,
+            due: str,
             offset: int = 0,
             tax_percentage: float = 13.0
     ):
 
+        # Validation
+        assert type(offset) is int, f"Starting number of {offset} is not an integer."
+        assert 0 <= tax_percentage <= 100, f"Tax percentage of {tax_percentage} is not between 0 and 100."
+        assert re.match(ISO_DATE_RE, due), f"Due date of {due} is not in ISO format (yyyy-mm-dd)."
+
         Template.invoices_created += 1  # Track instances
 
+        # Properties
         self.invoice = self.__get_template()
         self.issuer = issuer
         self.client = client
