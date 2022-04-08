@@ -60,6 +60,10 @@ class Item:
 
         return [item for item in cls._instances if item.name in names]
 
+    @classmethod
+    def all(cls) -> list:
+        return cls._instances
+
     # Instance methods
 
     # Properties
