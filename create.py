@@ -19,6 +19,8 @@ due = dt.date.fromisoformat("2022-09-14")
 
 template = Template(company, client, example_item, terms, due)
 
+print(template)
+
 # Main
 template.fill_out()
 template.save(pdf=True)

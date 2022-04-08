@@ -26,7 +26,7 @@ class Item:
         # Properties
         self.name = name
         self.description = description
-        self.price = price
+        self.price = round(price, 2)
         self.quantity = quantity
 
     @property
@@ -50,6 +50,9 @@ class Item:
 
         return BeautifulSoup(representation, features='html.parser')
 
+    def __repr__(self):
+        return f"{self.name} (x{self.quantity})\n${self.price:.2f} each\n{self.description[:25]}..."
+
 
 class Issuer:
 
@@ -67,6 +70,10 @@ class Issuer:
         self.email = email
         self.phone = phone
 
+    def __repr__(self):
+
+        return f"{self.name}"
+
 
 class Client:
 
@@ -74,6 +81,10 @@ class Client:
         self.name = name
         self.address = address
         self.location = location
+
+    def __repr__(self):
+
+        return f"{self.name}"
 
 
 class Template:
@@ -97,8 +108,10 @@ class Template:
 
         if type(due) is str:
             assert re.match(ISO_DATE_RE, due), f"Due date of {due} is not in ISO format (yyyy-mm-dd)."
+            self.__due = dt.date.fromisoformat(due)
         else:
             assert type(due) is dt.date, f"Due date must be in ISO date format as a string or be a datetime.date object."
+            self.__due = due
 
         Template.invoices_created += 1  # Track instances
 
@@ -108,7 +121,6 @@ class Template:
         self.client = client
         self.terms = terms_and_conditions
         self.items = items if type(items) is list else [items]
-        self.__due = due
         self._id = self.invoices_created + offset  # So numbering can start from specified number
         self.tax_percentage = tax_percentage / 100
 
@@ -131,6 +143,23 @@ class Template:
             self.__due = value
         else:
             raise ValueError("Due date must be an ISO date string or a datetime.date object.")
+
+    @property
+    def subtotal(self):
+
+        subtotal = 0
+        for item in self.items:
+            subtotal += item.subtotal
+
+        return subtotal
+
+    @property
+    def tax(self):
+        return self.subtotal * self.tax_percentage
+
+    @property
+    def grand_total(self):
+        return self.subtotal + self.tax
 
     # Utility functions
 
@@ -183,18 +212,10 @@ class Template:
 
         """Update totals."""
 
-        # Calculations
-        subtotal = 0
-        for item in self.items:
-            subtotal += item.subtotal
-
-        tax = subtotal * self.tax_percentage
-        grand_total = subtotal + tax
-
         # Replacing
-        self.__replace_text("actual-subtotal", format_price(subtotal))
-        self.__replace_text("grandtotal", format_price(grand_total))
-        self.__replace_text("tax", format_price(tax))
+        self.__replace_text("actual-subtotal", format_price(self.subtotal))
+        self.__replace_text("grandtotal", format_price(self.grand_total))
+        self.__replace_text("tax", format_price(self.tax))
         self.__replace_text("tax-percentage", f"Tax {int(self.tax_percentage * 100)}%")
 
     def brand_name(self):
@@ -278,6 +299,10 @@ class Template:
             pdfkit.from_file(f"{project_dir}invoice_{self._id}.html", f"{project_dir}/invoice_{self._id}.pdf")
         except OSError:  # For some reason this is always thrown, but PDF is successfully made anyway
             pass
+
+    # Built in methods
+    def __repr__(self):
+        return f"Issued by: {self.issuer}\nIssued to: {self.client}\nTotal: {self.grand_total}\nDue: {self.due}"
 
 
 # Functions
