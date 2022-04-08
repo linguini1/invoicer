@@ -7,6 +7,8 @@ from bs4 import BeautifulSoup
 import pdfkit
 import os
 import re
+import pandas as pd
+from typing import Iterable
 
 # Constants
 EMAIL_RE = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
@@ -16,6 +18,8 @@ ISO_DATE_RE = "^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])$"
 # Classes
 class Item:
 
+    instances = []
+
     def __init__(self, name: str, description: str, price: float, quantity: int):
 
         # Validation
@@ -23,11 +27,33 @@ class Item:
         assert quantity >= 0, f"Quantity {quantity} is not greater than or equal to 0."
         assert type(quantity) is int, f"Quantity {quantity} is not an integer value."
 
+        self.instances.append(self)
+
         # Properties
         self.name = name
         self.description = description
         self.price = round(price, 2)
-        self.quantity = quantity
+        self.__quantity = quantity
+
+    # Class methods
+
+    @classmethod
+    def from_csv(cls, filename: str):
+
+        """Creates a bunch of item instances from a CSV file."""
+
+        for index, row in dataframe_from_csv(filename):
+
+            Item(
+                name=row["name"],
+                description=row["description"],
+                price=float(row["price"]),
+                quantity=0  # Quantity is 0 by default until set
+            )
+
+    # Instance methods
+
+    # Properties
 
     @property
     def subtotal(self) -> float:
@@ -50,8 +76,24 @@ class Item:
 
         return BeautifulSoup(representation, features='html.parser')
 
+    @property
+    def quantity(self):
+        return self.__quantity
+
+    @quantity.setter
+    def quantity(self, value: int):
+
+        if type(value) is not int:
+            raise ValueError(f"Quantity {value} is not an integer.")
+        elif value < 0:
+            raise ValueError(f"Quantity {value} is not greater than or equal to 0.")
+
+        self.__quantity = value
+
+    # Built in methods
+
     def __repr__(self):
-        return f"{self.name} (x{self.quantity})\n${self.price:.2f} each\n{self.description[:25]}..."
+        return f"#{self._id} {self.name} (x{self.quantity})\n${self.price:.2f} each\n{self.description[:25]}..."
 
 
 class Issuer:
@@ -77,13 +119,31 @@ class Issuer:
 
 class Client:
 
+    instances = []
+
     def __init__(self, name: str, address: str, location: str):
+
+        self.instances.append(self)
+
+        # Properties
         self.name = name
         self.address = address
         self.location = location
 
-    def __repr__(self):
+    @classmethod
+    def from_csv(cls, filename: str):
+        """Creates a bunch of item instances from a CSV file."""
 
+        # Create client instances
+        for index, row in dataframe_from_csv(filename):
+
+            Client(
+                name=row["name"],
+                address=row["address"],
+                location=row["location"]
+            )
+
+    def __repr__(self):
         return f"{self.name}"
 
 
@@ -145,7 +205,9 @@ class Template:
             raise ValueError("Due date must be an ISO date string or a datetime.date object.")
 
     @property
-    def subtotal(self):
+    def subtotal(self) -> float:
+
+        """Returns pre-tax subtotal as a float."""
 
         subtotal = 0
         for item in self.items:
@@ -154,11 +216,17 @@ class Template:
         return subtotal
 
     @property
-    def tax(self):
+    def tax(self) -> float:
+
+        """Returns tax total as a float."""
+
         return self.subtotal * self.tax_percentage
 
     @property
-    def grand_total(self):
+    def grand_total(self) -> float:
+
+        """Returns sum of subtotal and tax as a float."""
+
         return self.subtotal + self.tax
 
     # Utility functions
@@ -184,7 +252,7 @@ class Template:
 
         """Replaces the tag text using passed text."""
 
-        return self.__get_element(class_name).string.replace_with(text)
+        self.__get_element(class_name).string.replace_with(text)
 
     # Functions for filling out template
 
@@ -320,3 +388,13 @@ def format_phone(phone: int) -> str:
     phone = str(phone)
 
     return f"{phone[:3]}-{phone[3:6]}-{phone[6:]}"
+
+
+def dataframe_from_csv(filename: str) -> Iterable:
+
+    """Returns the CSV as a Pandas dataframe."""
+
+    filename = filename + ".csv" if ".csv" not in filename else filename  # Add suffix to filename
+    data = pd.read_csv(filename)  # Read in data
+
+    return data.iterrows()

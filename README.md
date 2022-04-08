@@ -11,6 +11,7 @@ Python 3.10.0 or later is required
 - Beautiful Soup (bs4)
 - pdfkit
 - pdfkit's dependency wkhtmltopdf
+- Pandas
 
 ## Coming soon
 - Console interface for creating invoices
