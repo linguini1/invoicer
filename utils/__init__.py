@@ -86,7 +86,7 @@ class Template:
             client: Client,
             items: list[Item] | Item,
             terms_and_conditions: str,
-            due: str,
+            due: str | dt.date,
             offset: int = 0,
             tax_percentage: float = 13.0
     ):
@@ -94,7 +94,11 @@ class Template:
         # Validation
         assert type(offset) is int, f"Starting number of {offset} is not an integer."
         assert 0 <= tax_percentage <= 100, f"Tax percentage of {tax_percentage} is not between 0 and 100."
-        assert re.match(ISO_DATE_RE, due), f"Due date of {due} is not in ISO format (yyyy-mm-dd)."
+
+        if type(due) is str:
+            assert re.match(ISO_DATE_RE, due), f"Due date of {due} is not in ISO format (yyyy-mm-dd)."
+        else:
+            assert type(due) is dt.date, f"Due date must be in ISO date format as a string or be a datetime.date object."
 
         Template.invoices_created += 1  # Track instances
 
@@ -104,9 +108,29 @@ class Template:
         self.client = client
         self.terms = terms_and_conditions
         self.items = items if type(items) is list else [items]
-        self.due = due
+        self.__due = due
         self._id = self.invoices_created + offset  # So numbering can start from specified number
         self.tax_percentage = tax_percentage / 100
+
+    # Properties
+    @property
+    def due(self):
+        return self.__due
+
+    @due.setter
+    def due(self, value: str | dt.date):
+
+        if type(value) is str:
+
+            if re.match(ISO_DATE_RE, value):
+                self.__due = dt.date.fromisoformat(value)
+            else:
+                raise ValueError("Due date string not in ISO format (yyyy-mm-dd).")
+
+        elif type(value) == dt.date:
+            self.__due = value
+        else:
+            raise ValueError("Due date must be an ISO date string or a datetime.date object.")
 
     # Utility functions
 
