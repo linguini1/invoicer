@@ -32,3 +32,6 @@ Required parameters:
 
 # Imports
 import argparse
+
+# Starting with issuer and terms and agreements first because they are constant
+parser = argparse.ArgumentParser()

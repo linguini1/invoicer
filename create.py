@@ -6,9 +6,6 @@ import datetime as dt
 from utils import Item, Issuer, Client, Template
 
 # Params
-terms = "Here is a super long and ridiculous paragraph representing the terms and conditions of my company. This is " \
-        "all MIT licensed anyways so it's not like it matters."
-
 company = Issuer("GolinDev Inc.", "GolinDev", "Tangerine", "golindev@gmail.com", 3432622690)
 due = dt.date.fromisoformat("2022-09-14")
 
@@ -16,8 +13,8 @@ due = dt.date.fromisoformat("2022-09-14")
 Item.from_csv("itemList.csv")
 Client.from_csv("clientList.csv")
 
-template = Template(company, Client.find_client("Mauro Golin"), Item.all(), terms, due)
+template = Template(company, Client.find_client("Mauro Golin"), Item.all(), Template.terms_from_file("terms.txt"), due)
 
 # Main
-template.fill_out()
+template.populate()
 template.save(pdf=True)

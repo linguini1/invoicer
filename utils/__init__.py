@@ -202,6 +202,7 @@ class Template:
         self.items = items if type(items) is list else [items]
         self._id = self.invoices_created + offset  # So numbering can start from specified number
         self.tax_percentage = tax_percentage / 100
+        self._created = dt.date.today()
 
     # Properties
     @property
@@ -261,6 +262,19 @@ class Template:
 
         return template
 
+    @staticmethod
+    def terms_from_file(filename: str) -> str:
+
+        """Returns the terms and agreements read from a text file."""
+
+        if ".txt" not in filename:
+            raise ValueError("File must be .txt file.")
+
+        with open(filename, "r") as file:
+            terms = file.read()
+
+        return terms
+
     def __get_element(self, class_name: str) -> bs4.element.Tag:
 
         """Returns an element of the template given its class name."""
@@ -275,17 +289,14 @@ class Template:
 
     # Functions for filling out template
 
-    def invoice_details(self):
+    def __invoice_details(self):
 
         """Updates invoice details."""
-
-        today = dt.date.today()  # Today's date
-
-        self.__replace_text("invoice-date", f"Date of issue: {str(today)}")
+        self.__replace_text("invoice-date", f"Date of issue: {str(self._created)}")
         self.__replace_text("payment-date", f"Due by: {str(self.due)}")
         self.__replace_text("invoice-number", f"Invoice #{str(self._id)}")
 
-    def add_items(self):
+    def __add_items(self):
 
         """Adds items to the item list on the invoice."""
 
@@ -295,7 +306,7 @@ class Template:
         for item in self.items:
             table.append(item.html)
 
-    def totals(self):
+    def __totals(self):
 
         """Update totals."""
 
@@ -305,13 +316,13 @@ class Template:
         self.__replace_text("tax", format_price(self.tax))
         self.__replace_text("tax-percentage", f"Tax {int(self.tax_percentage * 100)}%")
 
-    def brand_name(self):
+    def __brand_name(self):
 
         """Fills in brand name."""
 
         self.__replace_text("brand-name", self.issuer.name)
 
-    def payment_info(self):
+    def __payment_info(self):
 
         """Updates payment information."""
 
@@ -321,20 +332,20 @@ class Template:
         self.__replace_text("email", self.issuer.email)
         self.__replace_text("phone", format_phone(self.issuer.phone))
 
-    def billing_details(self):
+    def __billing_details(self):
         """Updates billing information."""
 
         self.__replace_text("company-name", self.client.name)
         self.__replace_text("address", self.client.address)
         self.__replace_text("location", self.client.location)
 
-    def terms_and_conditions(self):
+    def __terms_and_conditions(self):
 
         """Updates terms and conditions."""
 
         self.__replace_text("terms-and-conditions", self.terms)
 
-    def add_styling(self):
+    def __add_styling(self):
 
         """Adds the CSS styling inline in the invoice."""
 
@@ -345,18 +356,18 @@ class Template:
 
         self.invoice.find("html").append(style_tag)
 
-    def fill_out(self):
+    def populate(self):
 
         """Fills out the invoice in its entirety."""
 
-        self.invoice_details()
-        self.add_items()
-        self.totals()
-        self.brand_name()
-        self.payment_info()
-        self.billing_details()
-        self.terms_and_conditions()
-        self.add_styling()
+        self.__invoice_details()
+        self.__add_items()
+        self.__totals()
+        self.__brand_name()
+        self.__payment_info()
+        self.__billing_details()
+        self.__terms_and_conditions()
+        self.__add_styling()
 
         self.invoice.find("title").string.replace_with(f"Invoice {self._id}")
 
@@ -413,7 +424,9 @@ def dataframe_from_csv(filename: str) -> Iterable:
 
     """Returns the CSV as a Pandas dataframe."""
 
-    filename = filename + ".csv" if ".csv" not in filename else filename  # Add suffix to filename
+    if ".csv" not in filename:
+        raise ValueError("File must be a .csv file.")
+
     data = pd.read_csv(filename)  # Read in data
 
     return data.iterrows()
