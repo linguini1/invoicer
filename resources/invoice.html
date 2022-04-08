@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="widtd=device-widtd, initial-scale=1.0" />
+    <link rel="stylesheet" href="invoice.css" />
+    <title>Invoice</title>
+  </head>
+
+  <body>
+    <div class="page">
+      <section class="header">
+        <div class="top-header">
+          <h1>Invoice</h1>
+          <h2 class="brand-name">Brand name</h2>
+        </div>
+
+        <div class="bottom-header">
+          <div class="address-container">
+            <p class="bill-to">Bill to:</p>
+            <p class="company-name">company name</p>
+            <p class="address">321 Example St., GHI JKL</p>
+            <p class="location">New York, NY, United States</p>
+          </div>
+
+          <div class="details">
+            <h4>Invoice Details</h4>
+            <p class="invoice-date">Invoice Date: 2020-01-01</p>
+            <p class="payment-date">Due Date: 2021-01-01</p>
+            <p class="invoice-number">Invoice No: #34</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="item-list">
+        <table class="item-table" cellspacing="0">
+          <col class="items" />
+          <col class="unit-price" />
+          <col class="quantity" />
+          <col class="subtotal" />
+          <tr>
+            <th>Item</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Subtotal</th>
+          </tr>
+        </table>
+      </section>
+
+      <section class="total">
+        <table cellspacing="0">
+          <col class="titles" />
+          <col class="numbers" />
+          <tr>
+            <td class="sub-total">Subtotal</td>
+            <td class="actual-subtotal">1500.00</td>
+          </tr>
+          <tr>
+            <td class="sub-total tax-percentage">Tax 10%</td>
+            <td class="tax">150.00</td>
+          </tr>
+          <tr>
+            <td class="grand-total highlight">Grand Total</td>
+            <td class="highlight grandtotal">1650.00</td>
+          </tr>
+        </table>
+      </section>
+
+      <section class="payment-info">
+        <h3>Payment Info</h3>
+        <div class="payment-info-containter">
+          <p class="pay-to">Pay to: Brand</p>
+          <p class="account">Account: example account</p>
+          <p class="bank">Scotiabank</p>
+          <p class="email">example@email.com</p>
+          <p class="phone">555-555-5555</p>
+        </div>
+      </section>
+
+      <section class="terms">
+        <h3>Terms and Conditions</h3>
+        <p class="terms-and-conditions">
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Reprehenderit
+          reiciendis tenetur libero, blanditiis illum corporis dolor harum
+          eveniet voluptatem repudiandae nulla provident alias voluptat
+        </p>
+      </section>
+
+      <section class="signature">
+        <h5>Signature:</h5>
+        <input type="text" />
+      </section>
+    </div>
+  </body>
+</html>
