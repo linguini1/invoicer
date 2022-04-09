@@ -52,7 +52,7 @@ class Item:
             )
 
     @classmethod
-    def find_item(cls, names: str | list[str]) -> list:
+    def find_items(cls, names: str | list[str]) -> list:
 
         """Returns the Item object with the corresponding name."""
 
@@ -169,13 +169,13 @@ class Client:
 class Template:
 
     invoices_created = 0
+    __terms_and_conditions = None
+    __issuer = None
 
     def __init__(
             self,
-            issuer: Issuer,
             client: Client,
             items: list[Item] | Item,
-            terms_and_conditions: str | None = None,
             due: str | dt.date | None = None,
             offset: int = 0,
             tax_percentage: float = 13.0
@@ -196,15 +196,95 @@ class Template:
 
         # Properties
         self.invoice = self.__get_template()
-        self.issuer = issuer
         self.client = client
-        self.terms = terms_and_conditions
         self.items = items if type(items) is list else [items]
         self._id = self.invoices_created + offset  # So numbering can start from specified number
         self.tax_percentage = tax_percentage / 100
         self._created = dt.date.today()
 
+    # Class functions
+
+    @classmethod
+    def batch_from_file(cls, filename: str, pdf=False):
+
+        """Creates a batch of invoices from a batch CSV file."""
+
+        if not cls.__issuer:
+            raise ValueError("Please define an issuer first.")
+
+        if not cls.__terms_and_conditions:
+            raise ValueError("Please define the terms and agreements first.")
+
+        batches = pd.read_csv(filename)  # Read batches
+
+        # Create templates from batches
+        for client in batches:
+            column = batches[client]
+
+            current_items = []  # Items charged on current invoice
+
+            # Parse client header (duplicate headers get numbers added on and that prevents lookup)
+            client = client.split(".")[0]
+
+            # Getting client
+            client = Client.find_client(client)
+
+            for row in column.iteritems():
+                index, value = row  # Unpack
+
+                # As soon as NaN is reached, break (no more items)
+                if pd.isna(value):
+                    break
+
+                # Get date
+                if index == 0:
+                    due_date = value
+
+                # It's an item
+                else:
+                    name, quantity = value.split(",")
+                    quantity = int(quantity)
+
+                    item = Item.find_items(name)[0]
+                    item.quantity = quantity
+
+                    current_items.append(item)
+
+            # Create the template and save it
+            template = Template(client, current_items, due=due_date)
+            template.save(pdf=pdf)
+
+    @classmethod
+    def terms_from_file(cls, filename: str):
+
+        """Sets the class terms and agreements to the terms and agreements read from a text file."""
+
+        if ".txt" not in filename:
+            raise ValueError("File must be .txt file.")
+
+        with open(filename, "r") as file:
+            terms = file.read()
+
+        cls.__terms_and_conditions = terms
+
+    @classmethod
+    def set_terms(cls, terms: str):
+        cls.__terms_and_conditions = terms
+
+    @classmethod
+    def set_issuer(cls, issuer: Issuer):
+        cls.__issuer = issuer
+
     # Properties
+
+    @property
+    def terms_and_conditions(self):
+        return self.__class__.terms_and_conditions
+
+    @property
+    def issuer(self):
+        return self.__class__.__issuer
+
     @property
     def due(self):
         return self.__due
@@ -262,18 +342,6 @@ class Template:
 
         return template
 
-    def terms_from_file(self, filename: str):
-
-        """Returns the terms and agreements read from a text file."""
-
-        if ".txt" not in filename:
-            raise ValueError("File must be .txt file.")
-
-        with open(filename, "r") as file:
-            terms = file.read()
-
-        self.terms = terms
-
     def __get_element(self, class_name: str) -> bs4.element.Tag:
 
         """Returns an element of the template given its class name."""
@@ -319,17 +387,17 @@ class Template:
 
         """Fills in brand name."""
 
-        self.__replace_text("brand-name", self.issuer.name)
+        self.__replace_text("brand-name", self.__issuer.name)
 
     def __payment_info(self):
 
         """Updates payment information."""
 
-        self.__replace_text("pay-to", f"Pay to: {self.issuer.name}")
-        self.__replace_text("account", f"Account: {self.issuer.account_name}")
-        self.__replace_text("bank", self.issuer.bank)
-        self.__replace_text("email", self.issuer.email)
-        self.__replace_text("phone", format_phone(self.issuer.phone))
+        self.__replace_text("pay-to", f"Pay to: {self.__issuer.name}")
+        self.__replace_text("account", f"Account: {self.__issuer.account_name}")
+        self.__replace_text("bank", self.__issuer.bank)
+        self.__replace_text("email", self.__issuer.email)
+        self.__replace_text("phone", format_phone(self.__issuer.phone))
 
     def __billing_details(self):
         """Updates billing information."""
@@ -338,11 +406,11 @@ class Template:
         self.__replace_text("address", self.client.address)
         self.__replace_text("location", self.client.location)
 
-    def __terms_and_conditions(self):
+    def __fill_terms_and_conditions(self):
 
         """Updates terms and conditions."""
 
-        self.__replace_text("terms-and-conditions", self.terms)
+        self.__replace_text("terms-and-conditions", self.__terms_and_conditions)
 
     def __add_styling(self):
 
@@ -359,7 +427,7 @@ class Template:
 
         """Fills out the invoice in its entirety."""
 
-        if not self.terms:
+        if not self.__terms_and_conditions:
             raise ValueError("Please define the terms and conditions of the invoice.")
 
         if not self.due:
@@ -371,7 +439,7 @@ class Template:
         self.__brand_name()
         self.__payment_info()
         self.__billing_details()
-        self.__terms_and_conditions()
+        self.__fill_terms_and_conditions()
         self.__add_styling()
 
         self.invoice.find("title").string.replace_with(f"Invoice {self._id}")
@@ -385,6 +453,9 @@ class Template:
             os.mkdir("output")
         except FileExistsError:
             pass
+
+        # Ensure population of field
+        self.populate()
 
         with open(f"output/invoice_{self._id}.html", "w") as file:
             file.write(str(self.invoice))
@@ -405,7 +476,7 @@ class Template:
 
     # Built in methods
     def __repr__(self):
-        return f"Issued by: {self.issuer}\nIssued to: {self.client}\nTotal: {self.grand_total}\nDue: {self.due}"
+        return f"Issued by: {self.__issuer}\nIssued to: {self.client}\nTotal: {self.grand_total}\nDue: {self.due}"
 
 
 # Functions

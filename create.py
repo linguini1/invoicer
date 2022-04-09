@@ -2,20 +2,28 @@
 __author__ = "Matteo Golin"
 
 # Imports
-import datetime as dt
 from utils import Item, Issuer, Client, Template
+from interface import Interface
+from inputs import parser
 
-# Params
-company = Issuer("GolinDev Inc.", "GolinDev", "Tangerine", "golindev@gmail.com", 3432622690)
-due = dt.date.fromisoformat("2022-09-14")
+# Get command line arguments
+arguments = parser.parse_args()
+print(arguments)
 
-# Load items and clients
+# Get template from user input
+if arguments.i:
+    interface = Interface()
+    template = interface.invoice_from_input()
+
+if arguments.command == "batch":
+    Item.from_csv(arguments.items)
+    Client.from_csv(arguments.clients)
+
 Item.from_csv("itemList.csv")
 Client.from_csv("clientList.csv")
 
-template = Template(company, Client.find_client("Mauro Golin"), Item.all(), due=due)
-template.terms_from_file("terms.txt")
+golinDev = Issuer("Golin Dev Inc.", "Golin Dev", "Royal Bank of Canada", "golindev@gmail.com", 5555556666)
 
-# Main
-template.populate()
-template.save(pdf=True)
+Template.set_issuer(golinDev)
+Template.terms_from_file("terms.txt")
+Template.batch_from_file("combos.csv", pdf=True)
