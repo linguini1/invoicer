@@ -14,6 +14,17 @@ from typing import Iterable
 EMAIL_RE = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$"
 ISO_DATE_RE = "^\d{4}-([0]\d|1[0-2])-([0-2]\d|3[01])$"
 
+OPTIONS = {
+    "dpi": 300,
+    "page-size": "A5",
+    "margin-top": "0",
+    "margin-bottom": "0",
+    "margin-left": "0",
+    "margin-right": "0",
+    "encoding": "UTF-8",
+    "no-outline": None,
+}
+
 
 # Classes
 class Item:
@@ -469,8 +480,10 @@ class Template:
 
         project_dir = os.getcwd() + "\\output\\"  # Requires absolute path for some reason
 
+        filepath = f"{project_dir}invoice_{self._id}"
+
         try:
-            pdfkit.from_file(f"{project_dir}invoice_{self._id}.html", f"{project_dir}/invoice_{self._id}.pdf")
+            pdfkit.from_file(f"{filepath}.html", f"{filepath}.pdf", options=OPTIONS)
         except OSError:  # For some reason this is always thrown, but PDF is successfully made anyway
             pass
 
