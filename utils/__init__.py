@@ -175,8 +175,8 @@ class Template:
             issuer: Issuer,
             client: Client,
             items: list[Item] | Item,
-            terms_and_conditions: str,
-            due: str | dt.date,
+            terms_and_conditions: str | None = None,
+            due: str | dt.date | None = None,
             offset: int = 0,
             tax_percentage: float = 13.0
     ):
@@ -262,8 +262,7 @@ class Template:
 
         return template
 
-    @staticmethod
-    def terms_from_file(filename: str) -> str:
+    def terms_from_file(self, filename: str):
 
         """Returns the terms and agreements read from a text file."""
 
@@ -273,7 +272,7 @@ class Template:
         with open(filename, "r") as file:
             terms = file.read()
 
-        return terms
+        self.terms = terms
 
     def __get_element(self, class_name: str) -> bs4.element.Tag:
 
@@ -359,6 +358,12 @@ class Template:
     def populate(self):
 
         """Fills out the invoice in its entirety."""
+
+        if not self.terms:
+            raise ValueError("Please define the terms and conditions of the invoice.")
+
+        if not self.due:
+            raise ValueError("Please define the due date of the invoice.")
 
         self.__invoice_details()
         self.__add_items()

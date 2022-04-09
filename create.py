@@ -13,7 +13,8 @@ due = dt.date.fromisoformat("2022-09-14")
 Item.from_csv("itemList.csv")
 Client.from_csv("clientList.csv")
 
-template = Template(company, Client.find_client("Mauro Golin"), Item.all(), Template.terms_from_file("terms.txt"), due)
+template = Template(company, Client.find_client("Mauro Golin"), Item.all(), due=due)
+template.terms_from_file("terms.txt")
 
 # Main
 template.populate()

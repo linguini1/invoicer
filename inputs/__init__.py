@@ -33,5 +33,8 @@ Required parameters:
 # Imports
 import argparse
 
+# Constants
+DESCRIPTION = """Takes inputs for invoice generation."""
+
 # Starting with issuer and terms and agreements first because they are constant
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(DESCRIPTION)
