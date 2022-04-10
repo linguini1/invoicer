@@ -511,11 +511,12 @@ def format_phone(phone: int) -> str:
 
 def dataframe_from_csv(filename: str) -> Iterable:
 
-    """Returns the CSV as a Pandas dataframe."""
+    """Returns the CSV as a Pandas dataframe with lowercase headers."""
 
     if ".csv" not in filename:
         raise ValueError("File must be a .csv file.")
 
     data = pd.read_csv(filename)  # Read in data
+    data.columns = map(str.lower, data.columns)
 
     return data.iterrows()

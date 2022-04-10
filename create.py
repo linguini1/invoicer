@@ -35,12 +35,3 @@ if arg.command == "batch":
         Template.terms_from_file(arg.terms_file.name)
 
     Template.batch_from_file(arg.batch.name, pdf=True)
-
-# Item.from_csv("itemList.csv")
-# Client.from_csv("clientList.csv")
-#
-# golinDev = Issuer("Golin Dev Inc.", "Golin Dev", "Royal Bank of Canada", "golindev@gmail.com", 5555556666)
-#
-# Template.set_issuer(golinDev)
-# Template.terms_from_file("terms.txt")
-# Template.batch_from_file("combos.csv", pdf=True)
