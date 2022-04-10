@@ -35,6 +35,7 @@ import argparse
 
 # Constants
 DESCRIPTION = """Takes inputs for invoice generation."""
+FILE_TYPE = argparse.FileType()  # Ensures passed file paths are in fact files
 
 # Starting with issuer and terms and agreements first because they are constant
 parser = argparse.ArgumentParser(DESCRIPTION)
@@ -52,18 +53,68 @@ load = subparsers.add_parser("batch", help="Performs batch invoicing using data 
 
 load.add_argument(
     "clients",
-    type=str,
+    type=FILE_TYPE,
     help="Filepath to client list CSV."
 )
 
 load.add_argument(
     "items",
-    type=str,
+    type=FILE_TYPE,
     help="Filepath to item list CSV."
 )
 
 load.add_argument(
-    "batch file",
-    type=str,
+    "batch",
+    type=FILE_TYPE,
     help="Filepath to invoice batch CSV."
+)
+
+load.add_argument(
+    "-name", "-n",
+    required=True,
+    type=str,
+    help="The name of the issuer."
+)
+
+load.add_argument(
+    "-acc", "-a",
+    required=True,
+    type=str,
+    help="The account name of the issuer."
+)
+
+load.add_argument(
+    "-bank", "-b",
+    required=True,
+    type=str,
+    help="The bank of the issuer."
+)
+
+load.add_argument(
+    "-email", "-e",
+    required=True,
+    type=str,
+    help="The email of the issuer."
+)
+
+load.add_argument(
+    "-phone", "-p",
+    required=True,
+    type=int,
+    help="The phone number of the issuer."
+)
+
+# Terms and agreements should be mutually exclusive (either file or string)
+terms_group = load.add_mutually_exclusive_group(required=True)
+
+terms_group.add_argument(
+    "-terms", "-t",
+    type=str,
+    help="The terms and agreements as a string."
+)
+
+terms_group.add_argument(
+    "-terms-file", "-tf",
+    type=FILE_TYPE,
+    help="The text file containing the terms and agreements."
 )
