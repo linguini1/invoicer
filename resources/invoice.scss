@@ -150,7 +150,8 @@ body {
 
 .signature {
   display: flex;
-  justify-content: space-between;
+  justify-content: left;
+  align-items: baseline;
 
   input {
     border: none;
@@ -160,6 +161,12 @@ body {
       outline: none;
     }
     font-family: "Jetbrains Mono";
+  }
+
+  .line {
+    background-color: white;
+    border-bottom: 2px solid $primary;
+    width: 515px;
   }
 
   h5 {

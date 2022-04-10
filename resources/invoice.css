@@ -172,9 +172,12 @@ body {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
+  -webkit-box-pack: left;
+      -ms-flex-pack: left;
+          justify-content: left;
+  -webkit-box-align: baseline;
+      -ms-flex-align: baseline;
+          align-items: baseline;
 }
 
 .signature input {
@@ -186,6 +189,12 @@ body {
 
 .signature input:focus {
   outline: none;
+}
+
+.signature .line {
+  background-color: white;
+  border-bottom: 2px solid #262629;
+  width: 515px;
 }
 
 .signature h5 {
