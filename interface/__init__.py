@@ -211,12 +211,13 @@ class Interface:
         terms = self.get_terms()
 
         # Define template
-        template = Template(issuer, client, items, due=due)
+        Template.set_issuer(issuer)
+        template = Template(client, items, due=due)
 
         # Add terms either from file or as a string enter by user
         if terms[0]:
-            template.terms_from_file(terms[1])
+            Template.terms_from_file(terms[1])
         else:
-            template.terms = terms[1]
+            Template.set_terms(terms[1])
 
         return template

@@ -8,14 +8,14 @@ from inputs import parser
 
 # Get command line arguments
 arg = parser.parse_args()
-print(arg)
 
 # Get template from user input
 if arg.i:
     interface = Interface()
     template = interface.invoice_from_input()
+    template.save(pdf=True)
 
-if arg.command == "batch":
+elif arg.command == "batch":
     Item.from_csv(arg.items.name)
     Client.from_csv(arg.clients.name)
 

@@ -50,6 +50,10 @@ commands. The issuer is used for all invoices in the batch.
 The terms and agreements can be entered via commandline as a string or as a filepath to a text file. They will be used
 on every invoice in the batch.
 
+### Console Interface
+You may choose to enter your data via inputs given to the console interface. To select this option, run the program with
+commandline argument `-interface` or `-i`.
+
 ## Installation
 Python 3.10.0 or later is required
 

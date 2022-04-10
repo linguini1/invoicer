@@ -52,7 +52,7 @@ def Phone(number: str) -> int:
 
 # Interface command
 parser.add_argument(
-    "-i",
+    "-i", "-interface",
     action="store_true",
     help="Triggers console interface launch on runtime."
 )
